@@ -1,18 +1,22 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:notify_push/animations/curved_example.dart';
+import 'package:notify_push/notification_detail.dart';
 import 'firebase_options.dart';
 
-
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-  options: DefaultFirebaseOptions.currentPlatform,
-);
-  runApp(const MyApp());
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  //iniciar o serviço background
+  FirebaseMessaging.onBackgroundMessage(_backgroundMessaging);
+
+ //runApp(const MyApp());
+ runApp(CurvedExample());
 }
 
-//
+//Future para notificações background
+Future<void> _backgroundMessaging(RemoteMessage message) async {}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -42,16 +46,16 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
   //NOTIFICAÇÃO
-  void firebaseMessaging() async{
+  void firebaseMessaging() async {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
 
     //pedindo permissão pro usuário
     NotificationSettings settings = await messaging.requestPermission(
       alert: true,
       badge: true,
-      sound: true
+      sound: true,
     );
-
+    //await FirebaseMessaging.instance.subscribeToTopic("topic");
     //token FCN, quando o user aceita as notificações, o token é enviado pra um banco
     //e é vinculado ao usuário
     String? tokenFCM = await messaging.getToken();
@@ -64,18 +68,48 @@ class _MyHomePageState extends State<MyHomePage> {
 
       //exibindo a mensagem
       showDialog(
-      context: context, 
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(body, maxLines: 1, style: TextStyle(overflow: TextOverflow.ellipsis),),
-        actions: [
-          TextButton(onPressed: ()=> {}, child: Text('Ver detalhes')),
-          TextButton(onPressed: ()=> {}, child: Text('Fechar')),
-        ],
-      )
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(title),
+          content: Text(
+            body,
+            maxLines: 1,
+            style: TextStyle(overflow: TextOverflow.ellipsis),
+          ),
+          actions: [
+            TextButton(onPressed: () => {}, child: Text('Ver detalhes')),
+            TextButton(onPressed: () => {}, child: Text('Fechar')),
+          ],
+        ),
       );
     });
-    
+
+    //notificação com app em background
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      final title = message.notification?.title ?? '';
+      final body = message.notification?.body ?? '';
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => NotificationDetail(title: title, body: body),
+        ),
+      );
+    });
+    //notificação com app fechado
+    FirebaseMessaging.instance.getInitialMessage().then((message) {
+      if (message != null) {
+        final title = message.notification?.title ?? '';
+        final body = message.notification?.body ?? '';
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => NotificationDetail(title: title, body: body),
+          ),
+        );
+      }
+    });
   }
 
   void _incrementCounter() {
@@ -89,9 +123,9 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     firebaseMessaging();
   }
+
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
