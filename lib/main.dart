@@ -2,6 +2,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:notify_push/animations/curved_example.dart';
+import 'package:notify_push/animations/hero_example.dart';
+import 'package:notify_push/animations/opacity_example.dart';
+import 'package:notify_push/animations/ripple_example.dart';
+import 'package:notify_push/animations/splash_app.dart';
+import 'package:notify_push/animations/staggered_example.dart';
+import 'package:notify_push/animations/tween_example.dart';
 import 'package:notify_push/notification_detail.dart';
 import 'firebase_options.dart';
 
@@ -12,7 +18,7 @@ void main() async {
   FirebaseMessaging.onBackgroundMessage(_backgroundMessaging);
 
  //runApp(const MyApp());
- runApp(CurvedExample());
+ runApp(SplashApp());
 }
 
 //Future para notificações background
